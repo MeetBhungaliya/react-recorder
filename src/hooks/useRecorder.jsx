@@ -1,7 +1,9 @@
-import { getAllVideos, saveVideo } from '@/lib/indexedDB';
+import { CODECTYPE, MIMETYPE } from '@/lib/constant';
+import { getAllFiles, saveVideo } from '@/lib/indexedDB';
 import { toBase64 } from '@/lib/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
+import useStreamStore from './useStream';
 
 const useRecorderStore = create((set) => ({
   recorder: null,
@@ -10,7 +12,7 @@ const useRecorderStore = create((set) => ({
   videos: [],
 
   initStore: async () => {
-    const storedVideos = await getAllVideos();
+    const storedVideos = await getAllFiles();
     set((state) => ({
       ...state,
       videos: storedVideos || state.videos
@@ -21,7 +23,7 @@ const useRecorderStore = create((set) => ({
     if (!stream) return;
 
     const recorder = new MediaRecorder(stream, {
-      mimeType: 'video/mp4; codecs=avc1.42001E, mp4a.40.2'
+      mimeType: `${MIMETYPE}; ${CODECTYPE}`
     });
     set((state) => ({
       ...state,
@@ -33,7 +35,12 @@ const useRecorderStore = create((set) => ({
       if (event.data.size > 0) {
         const video = {
           id: uuidv4(),
-          assets: await toBase64(event.data)
+          assets: await toBase64(event.data),
+          mimeType: MIMETYPE,
+          filename: Date.now(),
+          is_audio_available: useStreamStore.getState().audio,
+          size: event.data.size,
+          upload_status: null
         };
 
         await saveVideo(video);

@@ -49,7 +49,7 @@ export const saveVideo = async (video) => {
   }
 };
 
-export const getAllVideos = async () => {
+export const getAllFiles = async () => {
   try {
     const store = await getTransaction('videos');
     return new Promise((resolve, reject) => {
@@ -65,5 +65,24 @@ export const getAllVideos = async () => {
     });
   } catch (error) {
     console.error('Error during fetching videos:', error);
+  }
+};
+
+export const updateFile = async (video) => {
+  try {
+    const store = await getTransaction('videos', 'readwrite');
+    return new Promise((resolve, reject) => {
+      const request = store.put(video);
+
+      request.onsuccess = () => {
+        resolve();
+      };
+
+      request.onerror = (event) => {
+        reject('Error updating video:', event.target.error);
+      };
+    });
+  } catch (error) {
+    console.error('Error during updating video:', error);
   }
 };
